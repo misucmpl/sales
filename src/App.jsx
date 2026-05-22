@@ -1,7 +1,3 @@
-/**
- * UCMPL Sales Dashboard — Full App
- */
-
 import { useState, useEffect, useCallback } from "react";
 import {
   LineChart, Line, BarChart, Bar,
@@ -12,7 +8,7 @@ import {
 const APPS_SCRIPT_URL = "https://script.google.com/a/macros/ucmpl.com/s/AKfycbwFlDjuIrUUFDs_cx57CNtHYrPED5mQ9WJ5NtzLxPt4_vE7Eb6Roqp7J0jOQrom6mv8/exec";
 const ADMIN_PASSWORD  = "ucm@admin";
 const VIEW_PASSWORD   = "ucm@view";
-const LOGO_URL        = "https://raw.githubusercontent.com/misucmpl/sales/main/new logo.jpeg";
+const LOGO_URL        = "https://raw.githubusercontent.com/misucmpl/sales/main/new_logo.jpeg";
 
 const SEGMENTS = [
   { id: "caps",      name: "Caps & Closures",  color: "#E8533A", light: "#FDF1EF" },
@@ -54,6 +50,17 @@ async function apiPost(body) {
 const fmt  = v => `₹${parseFloat(v || 0).toFixed(2)}L`;
 const pct  = (a, t) => (!t ? 0 : Math.round((a / t) * 100));
 const delt = (c, p) => (!p ? 0 : Math.round(((c - p) / p) * 100));
+
+// Responsive hook
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
 
 function Card({ children, style = {} }) {
   return <div style={{ background: "#fff", border: "1px solid #E5E9EF", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", ...style }}>{children}</div>;
@@ -140,8 +147,8 @@ function LoginScreen({ onLogin }) {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F4F7FA", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: "40px 36px", width: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.10)" }}>
+    <div style={{ minHeight: "100vh", background: "#F4F7FA", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans','Segoe UI',sans-serif", padding: 16 }}>
+      <div style={{ background: "#fff", borderRadius: 20, padding: "40px 28px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.10)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
           <img src={LOGO_URL} alt="UCMPL Logo" style={{ height: 48, width: 48, objectFit: "contain", borderRadius: 8 }} />
           <div>
@@ -165,6 +172,7 @@ function LoginScreen({ onLogin }) {
 }
 
 function DataEntryPanel({ onSaved }) {
+  const isMobile = useIsMobile();
   const [activeForm, setActiveForm] = useState("daily");
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState("");
@@ -172,13 +180,10 @@ function DataEntryPanel({ onSaved }) {
   const [dailyDate, setDailyDate]   = useState(TODAY_KEY);
   const [dailyVals, setDailyVals]   = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
   const [enteredBy, setEnteredBy]   = useState("");
-
   const [tgtMonth, setTgtMonth]     = useState(MONTH_KEY);
   const [tgtVals, setTgtVals]       = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
-
   const [lmaMonth, setLmaMonth]     = useState(PREV_KEY);
   const [lmaVals, setLmaVals]       = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
-
   const [spMonth, setSpMonth]       = useState(MONTH_KEY);
   const [spPerson, setSpPerson]     = useState(SALESPEOPLE[0].id);
   const [spVals, setSpVals]         = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, { target: "", actual: "" }])));
@@ -225,39 +230,37 @@ function DataEntryPanel({ onSaved }) {
   }
 
   const forms = [
-    { id: "daily",   label: "📅 Daily Sales" },
-    { id: "targets", label: "🎯 Monthly Targets" },
-    { id: "lma",     label: "📋 Last Month Actuals" },
-    { id: "sp",      label: "👤 Salesperson Data" },
+    { id: "daily",   label: "📅 Daily" },
+    { id: "targets", label: "🎯 Targets" },
+    { id: "lma",     label: "📋 Last Month" },
+    { id: "sp",      label: "👤 Salesperson" },
   ];
 
   return (
     <div style={{ position: "relative" }}>
       {toast && (
-        <div style={{ position: "fixed", bottom: 28, right: 28, background: "#1A2332", color: "#fff", padding: "12px 20px", borderRadius: 12, fontWeight: 600, fontSize: 14, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
+        <div style={{ position: "fixed", bottom: 28, right: 16, left: 16, background: "#1A2332", color: "#fff", padding: "12px 20px", borderRadius: 12, fontWeight: 600, fontSize: 14, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)", textAlign: "center" }}>
           {toast}
         </div>
       )}
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
         {forms.map(f => (
-          <button key={f.id} onClick={() => setActiveForm(f.id)} style={{ padding: "9px 18px", borderRadius: 10, border: activeForm === f.id ? "none" : "1.5px solid #E5E9EF", background: activeForm === f.id ? "#1A2332" : "#fff", color: activeForm === f.id ? "#fff" : "#546E7A", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+          <button key={f.id} onClick={() => setActiveForm(f.id)} style={{ padding: "10px 8px", borderRadius: 10, border: activeForm === f.id ? "none" : "1.5px solid #E5E9EF", background: activeForm === f.id ? "#1A2332" : "#fff", color: activeForm === f.id ? "#fff" : "#546E7A", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
             {f.label}
           </button>
         ))}
       </div>
 
       {activeForm === "daily" && (
-        <Card style={{ padding: 24 }}>
+        <Card style={{ padding: 20 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Enter Daily Sales</div>
-          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Enter actual sales for each segment for a given date (₹ Lakhs).</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 8 }}>
-            <Input label="Date" type="date" value={dailyDate} onChange={setDailyDate} />
-            <Input label="Entered By" value={enteredBy} onChange={setEnteredBy} placeholder="Your name" />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 16 }}>Sales per segment in ₹ Lakhs.</div>
+          <Input label="Date" type="date" value={dailyDate} onChange={setDailyDate} />
+          <Input label="Entered By" value={enteredBy} onChange={setEnteredBy} placeholder="Your name" />
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {SEGMENTS.map(seg => (
-              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color }} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#1A2332" }}>{seg.name}</span>
                 </div>
@@ -265,21 +268,19 @@ function DataEntryPanel({ onSaved }) {
               </div>
             ))}
           </div>
-          <Btn onClick={saveDailySales} disabled={saving} style={{ width: "100%" }}>
-            {saving ? "Saving…" : "Save Daily Sales"}
-          </Btn>
+          <Btn onClick={saveDailySales} disabled={saving} style={{ width: "100%" }}>{saving ? "Saving…" : "Save Daily Sales"}</Btn>
         </Card>
       )}
 
       {activeForm === "targets" && (
-        <Card style={{ padding: 24 }}>
+        <Card style={{ padding: 20 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Set Monthly Targets</div>
-          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Set segment-wise monthly targets for a given month (₹ Lakhs).</div>
+          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 16 }}>Segment-wise targets in ₹ Lakhs.</div>
           <Input label="Month" type="month" value={tgtMonth} onChange={setTgtMonth} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {SEGMENTS.map(seg => (
-              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color }} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#1A2332" }}>{seg.name}</span>
                 </div>
@@ -287,21 +288,19 @@ function DataEntryPanel({ onSaved }) {
               </div>
             ))}
           </div>
-          <Btn onClick={saveTargets} disabled={saving} style={{ width: "100%" }}>
-            {saving ? "Saving…" : "Save Targets"}
-          </Btn>
+          <Btn onClick={saveTargets} disabled={saving} style={{ width: "100%" }}>{saving ? "Saving…" : "Save Targets"}</Btn>
         </Card>
       )}
 
       {activeForm === "lma" && (
-        <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Enter Last Month Final Actuals</div>
-          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Enter the final full-month sales for a previous month.</div>
+        <Card style={{ padding: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Last Month Actuals</div>
+          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 16 }}>Final full-month sales in ₹ Lakhs.</div>
           <Input label="Month" type="month" value={lmaMonth} onChange={setLmaMonth} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 16 }}>
             {SEGMENTS.map(seg => (
-              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color }} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#1A2332" }}>{seg.name}</span>
                 </div>
@@ -309,48 +308,43 @@ function DataEntryPanel({ onSaved }) {
               </div>
             ))}
           </div>
-          <Btn onClick={saveLastMonthActuals} disabled={saving} style={{ width: "100%" }}>
-            {saving ? "Saving…" : "Save Last Month Actuals"}
-          </Btn>
+          <Btn onClick={saveLastMonthActuals} disabled={saving} style={{ width: "100%" }}>{saving ? "Saving…" : "Save Actuals"}</Btn>
         </Card>
       )}
 
       {activeForm === "sp" && (
-        <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Salesperson Targets & Actuals</div>
-          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Set monthly target and update actual achievement per salesperson per segment.</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 8 }}>
-            <Input label="Month" type="month" value={spMonth} onChange={setSpMonth} />
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#546E7A", marginBottom: 5 }}>Salesperson</label>
-              <select value={spPerson} onChange={e => setSpPerson(e.target.value)}
-                style={{ width: "100%", border: "1.5px solid #E5E9EF", borderRadius: 10, padding: "10px 12px", fontSize: 14, outline: "none", fontFamily: "inherit", background: "#fff" }}>
-                {SALESPEOPLE.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
-              </select>
-            </div>
+        <Card style={{ padding: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Salesperson Data</div>
+          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 16 }}>Target & actual per salesperson.</div>
+          <Input label="Month" type="month" value={spMonth} onChange={setSpMonth} />
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#546E7A", marginBottom: 5 }}>Salesperson</label>
+            <select value={spPerson} onChange={e => setSpPerson(e.target.value)}
+              style={{ width: "100%", border: "1.5px solid #E5E9EF", borderRadius: 10, padding: "10px 12px", fontSize: 14, outline: "none", fontFamily: "inherit", background: "#fff" }}>
+              {SALESPEOPLE.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+            </select>
           </div>
-          <div style={{ background: "#F7F9FC", borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#8A97A8", textTransform: "uppercase" }}>Segment</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#8A97A8", textTransform: "uppercase" }}>Target (L)</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#8A97A8", textTransform: "uppercase" }}>Actual (L)</span>
-            </div>
-            {SEGMENTS.map(seg => (
-              <div key={seg.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>{seg.name}</span>
-                </div>
-                <input type="number" value={spVals[seg.id].target} onChange={e => setSpVals(x => ({ ...x, [seg.id]: { ...x[seg.id], target: e.target.value } }))}
-                  placeholder="0.00" style={{ border: "1.5px solid #E5E9EF", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" }} />
-                <input type="number" value={spVals[seg.id].actual} onChange={e => setSpVals(x => ({ ...x, [seg.id]: { ...x[seg.id], actual: e.target.value } }))}
-                  placeholder="0.00" style={{ border: "1.5px solid #E5E9EF", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" }} />
+          {SEGMENTS.map(seg => (
+            <div key={seg.id} style={{ background: seg.light, borderRadius: 12, padding: "10px 12px", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1A2332" }}>{seg.name}</span>
               </div>
-            ))}
-          </div>
-          <Btn onClick={saveSalespersonData} disabled={saving} style={{ width: "100%" }}>
-            {saving ? "Saving…" : "Save Salesperson Data"}
-          </Btn>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#8A97A8", marginBottom: 4 }}>TARGET (L)</div>
+                  <input type="number" value={spVals[seg.id].target} onChange={e => setSpVals(x => ({ ...x, [seg.id]: { ...x[seg.id], target: e.target.value } }))}
+                    placeholder="0.00" style={{ border: "1.5px solid #E5E9EF", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#8A97A8", marginBottom: 4 }}>ACTUAL (L)</div>
+                  <input type="number" value={spVals[seg.id].actual} onChange={e => setSpVals(x => ({ ...x, [seg.id]: { ...x[seg.id], actual: e.target.value } }))}
+                    placeholder="0.00" style={{ border: "1.5px solid #E5E9EF", borderRadius: 8, padding: "7px 10px", fontSize: 13, width: "100%", boxSizing: "border-box", fontFamily: "inherit", outline: "none" }} />
+                </div>
+              </div>
+            </div>
+          ))}
+          <Btn onClick={saveSalespersonData} disabled={saving} style={{ width: "100%" }}>{saving ? "Saving…" : "Save Salesperson Data"}</Btn>
         </Card>
       )}
     </div>
@@ -358,6 +352,7 @@ function DataEntryPanel({ onSaved }) {
 }
 
 function Dashboard({ rawData, loading }) {
+  const isMobile = useIsMobile();
   const [chartMode, setChartMode] = useState("daily");
 
   if (loading) return (
@@ -408,7 +403,6 @@ function Dashboard({ rawData, loading }) {
   }).sort((a, b) => b.totalActual - a.totalActual);
 
   const days = Array.from({ length: DAYS_MONTH }, (_, i) => i + 1);
-
   const totalDailyChartData = days.map(d => {
     let curr = 0, prev = 0;
     SEGMENTS.forEach(seg => {
@@ -418,7 +412,6 @@ function Dashboard({ rawData, loading }) {
     });
     return { day: d, [MONTH_NAME]: d <= DAY ? parseFloat(curr.toFixed(2)) : null, [PREV_MONTH]: parseFloat(prev.toFixed(2)) };
   });
-
   const totalPrevFull = SEGMENTS.reduce((s, seg) => s + segmentData[seg.id].prevFullActual, 0);
   const totalCumChartData = (() => {
     let cc = 0, cp = 0;
@@ -428,9 +421,16 @@ function Dashboard({ rawData, loading }) {
     });
   })();
 
+  const kpis = [
+    { label: "Total MTD Sales",    value: fmt(totalCurrMTD), sub: `vs ${fmt(totalPrevMTD)} (${PREV_MONTH})`, chip: <DeltaChip value={overallDelta} /> },
+    { label: "Monthly Target",     value: fmt(totalTarget),  sub: `Pro-rata: ${fmt(proRata)}` },
+    { label: "MTD Achievement",    value: `${overallAch}%`,  sub: "vs pro-rata", chip: <Badge color={overallAch >= 100 ? "#2E7D52" : overallAch >= 75 ? "#8A6200" : "#C0392B"} bg={overallAch >= 100 ? "#EAF7EF" : overallAch >= 75 ? "#FEF7E6" : "#FDEAEA"}>{overallAch >= 100 ? "On Track" : overallAch >= 75 ? "At Risk" : "Behind"}</Badge> },
+    { label: "MoM Gap",            value: fmt(Math.abs(totalCurrMTD - totalPrevMTD)), sub: totalCurrMTD >= totalPrevMTD ? "Ahead" : "Behind", chip: <DeltaChip value={overallDelta} /> },
+  ];
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
         <div style={{ display: "flex", background: "#F4F7FA", borderRadius: 8, padding: 3 }}>
           {["daily", "cumulative"].map(m => (
             <button key={m} onClick={() => setChartMode(m)} style={{ padding: "5px 14px", borderRadius: 6, border: "none", cursor: "pointer", fontWeight: 600, fontSize: 12, background: chartMode === m ? "#fff" : "transparent", color: chartMode === m ? "#1A2332" : "#8A97A8", boxShadow: chartMode === m ? "0 1px 4px rgba(0,0,0,0.08)" : "none", textTransform: "capitalize", fontFamily: "inherit" }}>
@@ -440,43 +440,39 @@ function Dashboard({ rawData, loading }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
-        {[
-          { label: "Total MTD Sales",    value: fmt(totalCurrMTD), sub: `vs ${fmt(totalPrevMTD)} (${PREV_MONTH} MTD)`, chip: <DeltaChip value={overallDelta} /> },
-          { label: "Monthly Target",     value: fmt(totalTarget),  sub: `Pro-rata today: ${fmt(proRata)}` },
-          { label: "MTD Achievement",    value: `${overallAch}%`,  sub: "vs pro-rata target", chip: <Badge color={overallAch >= 100 ? "#2E7D52" : overallAch >= 75 ? "#8A6200" : "#C0392B"} bg={overallAch >= 100 ? "#EAF7EF" : overallAch >= 75 ? "#FEF7E6" : "#FDEAEA"}>{overallAch >= 100 ? "On Track" : overallAch >= 75 ? "At Risk" : "Behind"}</Badge> },
-          { label: "Month-on-Month Gap", value: fmt(Math.abs(totalCurrMTD - totalPrevMTD)), sub: totalCurrMTD >= totalPrevMTD ? "Ahead of last month" : "Behind last month", chip: <DeltaChip value={overallDelta} /> },
-        ].map((k, i) => (
-          <Card key={i} style={{ padding: "18px 22px" }}>
-            <div style={{ fontSize: 11, color: "#8A97A8", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{k.label}</div>
-            <div style={{ fontWeight: 900, fontSize: 26, color: "#1A2332", letterSpacing: -0.5 }}>{k.value}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11, color: "#8A97A8" }}>{k.sub}</span>{k.chip}
+      {/* KPI Cards — 2 cols on mobile, 4 on desktop */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 12, marginBottom: 24 }}>
+        {kpis.map((k, i) => (
+          <Card key={i} style={{ padding: isMobile ? "14px 12px" : "18px 22px" }}>
+            <div style={{ fontSize: 10, color: "#8A97A8", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{k.label}</div>
+            <div style={{ fontWeight: 900, fontSize: isMobile ? 18 : 24, color: "#1A2332", letterSpacing: -0.5 }}>{k.value}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 10, color: "#8A97A8" }}>{k.sub}</span>{k.chip}
             </div>
           </Card>
         ))}
       </div>
 
       <SectionTitle sub={`${MONTH_NAME} vs ${PREV_MONTH} · Day ${DAY} of ${DAYS_MONTH}`}>
-        {chartMode === "daily" ? "Daily Sales — Total Business" : "Cumulative Sales — Total Business"}
+        {chartMode === "daily" ? "Daily Sales — Total" : "Cumulative Sales — Total"}
       </SectionTitle>
-      <Card style={{ padding: "24px 28px", marginBottom: 28 }}>
-        <ResponsiveContainer width="100%" height={260}>
+      <Card style={{ padding: isMobile ? "16px 12px" : "24px 28px", marginBottom: 24 }}>
+        <ResponsiveContainer width="100%" height={isMobile ? 200 : 260}>
           {chartMode === "daily" ? (
-            <BarChart data={totalDailyChartData} barCategoryGap="30%" margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+            <BarChart data={totalDailyChartData} barCategoryGap="30%" margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F0F4F8" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#8A97A8" }} tickLine={false} axisLine={false} interval={4} />
-              <YAxis tick={{ fontSize: 11, fill: "#8A97A8" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}L`} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8A97A8" }} tickLine={false} axisLine={false} interval={isMobile ? 9 : 4} />
+              <YAxis tick={{ fontSize: 10, fill: "#8A97A8" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}L`} width={30} />
               <Tooltip content={<ChartTip />} />
               <ReferenceLine x={DAY} stroke="#1A2332" strokeDasharray="4 2" strokeWidth={1.5} />
               <Bar dataKey={PREV_MONTH} fill="#E5E9EF" radius={[3,3,0,0]} />
               <Bar dataKey={MONTH_NAME} fill="#1A2332" radius={[3,3,0,0]} />
             </BarChart>
           ) : (
-            <LineChart data={totalCumChartData} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
+            <LineChart data={totalCumChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F0F4F8" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#8A97A8" }} tickLine={false} axisLine={false} interval={4} />
-              <YAxis tick={{ fontSize: 11, fill: "#8A97A8" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}L`} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8A97A8" }} tickLine={false} axisLine={false} interval={isMobile ? 9 : 4} />
+              <YAxis tick={{ fontSize: 10, fill: "#8A97A8" }} tickLine={false} axisLine={false} tickFormatter={v => `${v}L`} width={30} />
               <Tooltip content={<ChartTip />} />
               <ReferenceLine x={DAY} stroke="#1A2332" strokeDasharray="4 2" strokeWidth={1.5} />
               <Line dataKey="Last Month Final" stroke="#CBD5E1" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
@@ -488,7 +484,7 @@ function Dashboard({ rawData, loading }) {
       </Card>
 
       <SectionTitle sub="MTD achievement vs pro-rata target">Segment Breakdown</SectionTitle>
-      <Card style={{ marginBottom: 28 }}>
+      <Card style={{ marginBottom: 24 }}>
         {SEGMENTS.map((seg, i) => {
           const sd = segmentData[seg.id];
           const currMTD = sd.dailyCurr.filter(Boolean).reduce((a, b) => a + b, 0);
@@ -496,7 +492,25 @@ function Dashboard({ rawData, loading }) {
           const proR    = (sd.monthlyTarget / DAYS_MONTH) * DAY;
           const a = pct(currMTD, proR);
           const d = delt(currMTD, prevMTD);
-          return (
+          return isMobile ? (
+            <div key={seg.id} style={{ padding: "12px 16px", borderBottom: i < SEGMENTS.length - 1 ? "1px solid #F7F9FC" : "none" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: seg.color }} />
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>{seg.name}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(currMTD)}</span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: a >= 100 ? "#2E7D52" : a >= 75 ? "#F0A500" : "#C0392B" }}>{a}%</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: "#8A97A8" }}>prev: {fmt(prevMTD)}</span>
+                <DeltaChip value={d} />
+              </div>
+              <GaugeBar value={currMTD} max={proR || 1} color={seg.color} h={6} />
+            </div>
+          ) : (
             <div key={seg.id} style={{ display: "grid", gridTemplateColumns: "190px 90px 90px 70px 1fr 50px", alignItems: "center", gap: 16, padding: "14px 24px", borderBottom: i < SEGMENTS.length - 1 ? "1px solid #F7F9FC" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 3, background: seg.color, flexShrink: 0 }} />
@@ -513,21 +527,24 @@ function Dashboard({ rawData, loading }) {
       </Card>
 
       <SectionTitle sub={`${MONTH_NAME} · ranked by MTD actual`}>Sales Team Leaderboard</SectionTitle>
-      <Card style={{ marginBottom: 28 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 100px 100px 70px 1fr", gap: 12, padding: "12px 20px", borderBottom: "1px solid #F0F4F8", fontSize: 10, fontWeight: 700, color: "#8A97A8", textTransform: "uppercase", letterSpacing: 0.5 }}>
-          <span>#</span><span>Name</span><span>Actual</span><span>Target</span><span>Ach %</span><span>Progress</span>
-        </div>
+      <Card style={{ marginBottom: 24 }}>
         {spProcessed.map((sp, i) => {
           const rankColors = ["#F0A500","#8A97A8","#CD7F32"];
           const rank = i + 1;
           return (
-            <div key={sp.id} style={{ display: "grid", gridTemplateColumns: "40px 1fr 100px 100px 70px 1fr", gap: 12, alignItems: "center", padding: "12px 20px", borderBottom: "1px solid #F7F9FC", background: rank === 1 ? "#FFFBEF" : "#fff" }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: rank <= 3 ? rankColors[rank-1]+"22" : "#F0F4F8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: rank <= 3 ? rankColors[rank-1] : "#8A97A8" }}>{rank}</div>
-              <div style={{ fontWeight: 600, fontSize: 13, color: "#1A2332" }}>{sp.name}</div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{fmt(sp.totalActual)}</div>
-              <div style={{ fontSize: 12, color: "#8A97A8" }}>{fmt(sp.totalTarget)}</div>
-              <Badge color={sp.ach >= 100 ? "#2E7D52" : sp.ach >= 75 ? "#8A6200" : "#C0392B"} bg={sp.ach >= 100 ? "#EAF7EF" : sp.ach >= 75 ? "#FEF7E6" : "#FDEAEA"}>{sp.ach}%</Badge>
-              <GaugeBar value={sp.totalActual} max={sp.totalTarget || 1} color={sp.ach >= 100 ? "#3DAA6E" : sp.ach >= 75 ? "#F0A500" : "#E8533A"} h={7} />
+            <div key={sp.id} style={{ padding: isMobile ? "12px 14px" : "12px 20px", borderBottom: "1px solid #F7F9FC", background: rank === 1 ? "#FFFBEF" : "#fff" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: rank <= 3 ? rankColors[rank-1]+"22" : "#F0F4F8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: rank <= 3 ? rankColors[rank-1] : "#8A97A8", flexShrink: 0 }}>{rank}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "#1A2332" }}>{sp.name}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{fmt(sp.totalActual)}</span>
+                    <span style={{ fontSize: 11, color: "#8A97A8" }}>/ {fmt(sp.totalTarget)}</span>
+                    <Badge color={sp.ach >= 100 ? "#2E7D52" : sp.ach >= 75 ? "#8A6200" : "#C0392B"} bg={sp.ach >= 100 ? "#EAF7EF" : sp.ach >= 75 ? "#FEF7E6" : "#FDEAEA"}>{sp.ach}%</Badge>
+                  </div>
+                </div>
+              </div>
+              <GaugeBar value={sp.totalActual} max={sp.totalTarget || 1} color={sp.ach >= 100 ? "#3DAA6E" : sp.ach >= 75 ? "#F0A500" : "#E8533A"} h={6} />
             </div>
           );
         })}
@@ -537,6 +554,7 @@ function Dashboard({ rawData, loading }) {
 }
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [role, setRole]       = useState(VIEW_PASSWORD ? null : "viewer");
   const [activeTab, setTab]   = useState("dashboard");
   const [rawData, setRawData] = useState({ dailySales: [], targets: [], lastMonthActuals: [], spData: [] });
@@ -551,9 +569,7 @@ export default function App() {
       ]);
       setRawData({ dailySales, targets, lastMonthActuals, spData });
       setLR(new Date());
-    } catch (e) {
-      console.error("Fetch error", e);
-    }
+    } catch (e) { console.error("Fetch error", e); }
     setLoading(false);
   }, []);
 
@@ -568,41 +584,48 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#F4F7FA", minHeight: "100vh" }}>
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E9EF", padding: "0 32px", position: "sticky", top: 0, zIndex: 99 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, maxWidth: 1400, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <img src={LOGO_URL} alt="UCMPL Logo" style={{ height: 42, width: 42, objectFit: "contain", borderRadius: 8 }} />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: -0.3 }}>UCMPL Sales Dashboard</div>
-              <div style={{ fontSize: 11, color: "#8A97A8" }}>
-                Day {DAY} · {MONTH_NAME} {today.getFullYear()} ·&nbsp;
-                <Badge color={role === "admin" ? "#2E7D52" : "#2E86AB"} bg={role === "admin" ? "#EAF7EF" : "#EAF4F9"}>
-                  {role === "admin" ? "Admin" : "Viewer"}
-                </Badge>
+      {/* Header */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #E5E9EF", padding: isMobile ? "0 12px" : "0 32px", position: "sticky", top: 0, zIndex: 99 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: isMobile ? 56 : 64, maxWidth: 1400, margin: "0 auto" }}>
+          {/* Logo + Title */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img src={LOGO_URL} alt="UCMPL Logo" style={{ height: isMobile ? 34 : 42, width: isMobile ? 34 : 42, objectFit: "contain", borderRadius: 6 }} />
+            {!isMobile && (
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: -0.3 }}>UCMPL Sales Dashboard</div>
+                <div style={{ fontSize: 11, color: "#8A97A8" }}>
+                  Day {DAY} · {MONTH_NAME} {today.getFullYear()} ·&nbsp;
+                  <Badge color={role === "admin" ? "#2E7D52" : "#2E86AB"} bg={role === "admin" ? "#EAF7EF" : "#EAF4F9"}>
+                    {role === "admin" ? "Admin" : "Viewer"}
+                  </Badge>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* Tabs */}
           <div style={{ display: "flex", gap: 4 }}>
             {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "8px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13, background: activeTab === t.id ? "#1A2332" : "transparent", color: activeTab === t.id ? "#fff" : "#8A97A8", transition: "all .15s", fontFamily: "inherit" }}>{t.label}</button>
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: isMobile ? "6px 10px" : "8px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600, fontSize: isMobile ? 12 : 13, background: activeTab === t.id ? "#1A2332" : "transparent", color: activeTab === t.id ? "#fff" : "#8A97A8", fontFamily: "inherit" }}>{t.label}</button>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            {lastRefresh && <span style={{ fontSize: 11, color: "#8A97A8" }}>Updated {lastRefresh.toLocaleTimeString()}</span>}
-            <Btn variant="secondary" onClick={fetchData} disabled={loading} style={{ padding: "7px 14px", fontSize: 12 }}>
-              {loading ? "…" : "↻ Refresh"}
+
+          {/* Actions */}
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <Btn variant="secondary" onClick={fetchData} disabled={loading} style={{ padding: isMobile ? "6px 10px" : "7px 14px", fontSize: 12 }}>
+              {loading ? "…" : "↻"}
             </Btn>
-            <Btn variant="secondary" onClick={() => setRole(null)} style={{ padding: "7px 14px", fontSize: 12, color: "#C0392B" }}>
-              Sign Out
+            <Btn variant="secondary" onClick={() => setRole(null)} style={{ padding: isMobile ? "6px 10px" : "7px 14px", fontSize: 12, color: "#C0392B" }}>
+              {isMobile ? "✕" : "Sign Out"}
             </Btn>
           </div>
         </div>
       </div>
-      <div style={{ padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
+
+      <div style={{ padding: isMobile ? "16px 12px" : "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {activeTab === "dashboard" && <Dashboard rawData={rawData} loading={loading} />}
-        {activeTab === "entry"     && role === "admin" && <DataEntryPanel onSaved={fetchData} />}
+        {activeTab === "entry" && role === "admin" && <DataEntryPanel onSaved={fetchData} />}
       </div>
     </div>
   );
 }
-
