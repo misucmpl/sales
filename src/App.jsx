@@ -1,12 +1,5 @@
 /**
  * UCMPL Sales Dashboard — Full App
- * 
- * SETUP:
- * 1. Set APPS_SCRIPT_URL to your deployed Google Apps Script Web App URL
- * 2. Set ADMIN_PASSWORD to whatever you want (share only with data-entry users)
- * 3. VIEW_PASSWORD is optional — remove the login screen entirely if you want public view
- * 
- * Deploy to Vercel/Netlify as a React app (Vite or CRA)
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -16,13 +9,10 @@ import {
   ResponsiveContainer, ReferenceLine
 } from "recharts";
 
-// ─────────────────────────────────────────────────────────────
-// ★ CONFIGURE THESE THREE VALUES BEFORE DEPLOYING
-// ─────────────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = "https://script.google.com/a/macros/ucmpl.com/s/AKfycbwFlDjuIrUUFDs_cx57CNtHYrPED5mQ9WJ5NtzLxPt4_vE7Eb6Roqp7J0jOQrom6mv8/exec";
-const ADMIN_PASSWORD  = "ucm@admin";   // data entry users
-const VIEW_PASSWORD   = "ucm@view";    // view-only users (set "" to skip login)
-// ─────────────────────────────────────────────────────────────
+const ADMIN_PASSWORD  = "ucm@admin";
+const VIEW_PASSWORD   = "ucm@view";
+const LOGO_URL        = "https://raw.githubusercontent.com/misucmpl/sales/main/new_logo.jpeg";
 
 const SEGMENTS = [
   { id: "caps",      name: "Caps & Closures",  color: "#E8533A", light: "#FDF1EF" },
@@ -34,13 +24,13 @@ const SEGMENTS = [
   { id: "road",      name: "Road Safety",       color: "#546E7A", light: "#EDF2F4" },
 ];
 
-const SALESPEOPLE = [  
-  { id: "aj", name: "Ashuttosh Jain",  initials: "AJ" },
-  { id: "ar", name: "Amit Rai",  initials: "AR" },
-  { id: "rk", name: "Paras Agarwal",  initials: "PA" },
-  { id: "pm", name: "Ishita Sharma",   initials: "IS" },
-  { id: "as", name: "Ritika Upreti",   initials: "RU" },
-  { id: "nd", name: "Shivam Sukla",    initials: "SS" },
+const SALESPEOPLE = [
+  { id: "aj", name: "Ashuttosh Jain", initials: "AJ" },
+  { id: "ar", name: "Amit Rai",       initials: "AR" },
+  { id: "pa", name: "Paras Agarwal",  initials: "PA" },
+  { id: "is", name: "Ishita Sharma",  initials: "IS" },
+  { id: "ru", name: "Ritika Upreti",  initials: "RU" },
+  { id: "ss", name: "Shivam Sukla",   initials: "SS" },
 ];
 
 const today      = new Date();
@@ -52,25 +42,19 @@ const MONTH_NAME = today.toLocaleString("default", { month: "long" });
 const PREV_MONTH = new Date(today.getFullYear(), today.getMonth() - 1, 1).toLocaleString("default", { month: "long" });
 const TODAY_KEY  = today.toISOString().slice(0, 10);
 
-// ── API helpers ──────────────────────────────────────────────
 async function apiGet(tab) {
   const res = await fetch(`${APPS_SCRIPT_URL}?tab=${tab}`);
   const json = await res.json();
   return json.data || [];
 }
 async function apiPost(body) {
-  await fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(body) });
 }
 
-// ── Formatters ───────────────────────────────────────────────
 const fmt  = v => `₹${parseFloat(v || 0).toFixed(2)}L`;
 const pct  = (a, t) => (!t ? 0 : Math.round((a / t) * 100));
 const delt = (c, p) => (!p ? 0 : Math.round(((c - p) / p) * 100));
 
-// ── Tiny UI primitives ───────────────────────────────────────
 function Card({ children, style = {} }) {
   return <div style={{ background: "#fff", border: "1px solid #E5E9EF", borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", ...style }}>{children}</div>;
 }
@@ -125,7 +109,6 @@ function Btn({ children, onClick, variant = "primary", disabled, style = {} }) {
   );
 }
 
-// ── Chart tooltip ─────────────────────────────────────────────
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -142,9 +125,6 @@ function ChartTip({ active, payload, label }) {
   );
 }
 
-// ═════════════════════════════════════════════════════════════
-// LOGIN SCREEN
-// ═════════════════════════════════════════════════════════════
 function LoginScreen({ onLogin }) {
   const [pw, setPw]     = useState("");
   const [error, setErr] = useState("");
@@ -163,9 +143,7 @@ function LoginScreen({ onLogin }) {
     <div style={{ minHeight: "100vh", background: "#F4F7FA", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
       <div style={{ background: "#fff", borderRadius: 20, padding: "40px 36px", width: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.10)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: "#1A2332", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "#fff", fontWeight: 900, fontSize: 15 }}>UC</span>
-          </div>
+          <img src={LOGO_URL} alt="UCMPL Logo" style={{ height: 48, width: 48, objectFit: "contain", borderRadius: 8 }} />
           <div>
             <div style={{ fontWeight: 800, fontSize: 18 }}>UCMPL Sales</div>
             <div style={{ fontSize: 12, color: "#8A97A8" }}>Enter your password to continue</div>
@@ -186,28 +164,21 @@ function LoginScreen({ onLogin }) {
   );
 }
 
-// ═════════════════════════════════════════════════════════════
-// DATA ENTRY PANEL (Admin only)
-// ═════════════════════════════════════════════════════════════
 function DataEntryPanel({ onSaved }) {
   const [activeForm, setActiveForm] = useState("daily");
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState("");
 
-  // Daily sales form
   const [dailyDate, setDailyDate]   = useState(TODAY_KEY);
   const [dailyVals, setDailyVals]   = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
   const [enteredBy, setEnteredBy]   = useState("");
 
-  // Monthly targets form
   const [tgtMonth, setTgtMonth]     = useState(MONTH_KEY);
   const [tgtVals, setTgtVals]       = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
 
-  // Last month actuals form
   const [lmaMonth, setLmaMonth]     = useState(PREV_KEY);
   const [lmaVals, setLmaVals]       = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, ""])));
 
-  // Salesperson targets form
   const [spMonth, setSpMonth]       = useState(MONTH_KEY);
   const [spPerson, setSpPerson]     = useState(SALESPEOPLE[0].id);
   const [spVals, setSpVals]         = useState(() => Object.fromEntries(SEGMENTS.map(s => [s.id, { target: "", actual: "" }])));
@@ -267,7 +238,6 @@ function DataEntryPanel({ onSaved }) {
           {toast}
         </div>
       )}
-
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {forms.map(f => (
           <button key={f.id} onClick={() => setActiveForm(f.id)} style={{ padding: "9px 18px", borderRadius: 10, border: activeForm === f.id ? "none" : "1.5px solid #E5E9EF", background: activeForm === f.id ? "#1A2332" : "#fff", color: activeForm === f.id ? "#fff" : "#546E7A", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
@@ -276,7 +246,6 @@ function DataEntryPanel({ onSaved }) {
         ))}
       </div>
 
-      {/* Daily Sales */}
       {activeForm === "daily" && (
         <Card style={{ padding: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Enter Daily Sales</div>
@@ -302,7 +271,6 @@ function DataEntryPanel({ onSaved }) {
         </Card>
       )}
 
-      {/* Monthly Targets */}
       {activeForm === "targets" && (
         <Card style={{ padding: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Set Monthly Targets</div>
@@ -325,11 +293,10 @@ function DataEntryPanel({ onSaved }) {
         </Card>
       )}
 
-      {/* Last Month Actuals */}
       {activeForm === "lma" && (
         <Card style={{ padding: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Enter Last Month Final Actuals</div>
-          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Enter the final full-month sales for a previous month. Used as the benchmark line on cumulative charts.</div>
+          <div style={{ fontSize: 13, color: "#8A97A8", marginBottom: 20 }}>Enter the final full-month sales for a previous month.</div>
           <Input label="Month" type="month" value={lmaMonth} onChange={setLmaMonth} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
             {SEGMENTS.map(seg => (
@@ -348,7 +315,6 @@ function DataEntryPanel({ onSaved }) {
         </Card>
       )}
 
-      {/* Salesperson Targets & Actuals */}
       {activeForm === "sp" && (
         <Card style={{ padding: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>Salesperson Targets & Actuals</div>
@@ -391,9 +357,6 @@ function DataEntryPanel({ onSaved }) {
   );
 }
 
-// ═════════════════════════════════════════════════════════════
-// DASHBOARD (read from Google Sheet data)
-// ═════════════════════════════════════════════════════════════
 function Dashboard({ rawData, loading }) {
   const [chartMode, setChartMode] = useState("daily");
 
@@ -405,18 +368,14 @@ function Dashboard({ rawData, loading }) {
     </div>
   );
 
-  // ── Process raw data ──────────────────────────────────────
   const { dailySales, targets, lastMonthActuals, spData } = rawData;
 
-  // Build per-segment daily arrays
   const segmentData = {};
   SEGMENTS.forEach(seg => {
     const monthTarget = targets.find(r => r.month === MONTH_KEY && r.segment === seg.id);
     const monthlyTarget = monthTarget ? parseFloat(monthTarget.target) : 0;
-
     const dailyCurr = Array(DAYS_MONTH).fill(null);
     const dailyPrev = Array(DAYS_MONTH).fill(0);
-
     dailySales.forEach(row => {
       if (row.segment !== seg.id) return;
       const d = new Date(row.date);
@@ -425,26 +384,18 @@ function Dashboard({ rawData, loading }) {
       if (rowMonth === MONTH_KEY && day < DAYS_MONTH) dailyCurr[day] = (dailyCurr[day] || 0) + parseFloat(row.value || 0);
       if (rowMonth === PREV_KEY  && day < DAYS_MONTH) dailyPrev[day] = (dailyPrev[day] || 0) + parseFloat(row.value || 0);
     });
-
     const lma = lastMonthActuals.find(r => r.month === PREV_KEY && r.segment === seg.id);
     const prevFullActual = lma ? parseFloat(lma.actual) : dailyPrev.reduce((a, b) => a + b, 0);
-
     segmentData[seg.id] = { monthlyTarget, dailyCurr, dailyPrev, prevFullActual };
   });
 
-  // Totals
-  const totalCurrMTD = SEGMENTS.reduce((s, seg) => {
-    return s + (segmentData[seg.id].dailyCurr.filter(Boolean).reduce((a, b) => a + b, 0));
-  }, 0);
-  const totalPrevMTD = SEGMENTS.reduce((s, seg) => {
-    return s + segmentData[seg.id].dailyPrev.slice(0, DAY).reduce((a, b) => a + b, 0);
-  }, 0);
+  const totalCurrMTD = SEGMENTS.reduce((s, seg) => s + (segmentData[seg.id].dailyCurr.filter(Boolean).reduce((a, b) => a + b, 0)), 0);
+  const totalPrevMTD = SEGMENTS.reduce((s, seg) => s + segmentData[seg.id].dailyPrev.slice(0, DAY).reduce((a, b) => a + b, 0), 0);
   const totalTarget  = SEGMENTS.reduce((s, seg) => s + segmentData[seg.id].monthlyTarget, 0);
   const proRata      = (totalTarget / DAYS_MONTH) * DAY;
   const overallAch   = pct(totalCurrMTD, proRata);
   const overallDelta = delt(totalCurrMTD, totalPrevMTD);
 
-  // Process salespeople
   const spProcessed = SALESPEOPLE.map(sp => {
     const segs = {};
     SEGMENTS.forEach(seg => {
@@ -456,7 +407,6 @@ function Dashboard({ rawData, loading }) {
     return { ...sp, segs, totalTarget: totalT, totalActual: totalA, ach: pct(totalA, totalT) };
   }).sort((a, b) => b.totalActual - a.totalActual);
 
-  // Chart data builders
   const days = Array.from({ length: DAYS_MONTH }, (_, i) => i + 1);
 
   const totalDailyChartData = days.map(d => {
@@ -480,7 +430,6 @@ function Dashboard({ rawData, loading }) {
 
   return (
     <div>
-      {/* Chart mode toggle */}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
         <div style={{ display: "flex", background: "#F4F7FA", borderRadius: 8, padding: 3 }}>
           {["daily", "cumulative"].map(m => (
@@ -491,7 +440,6 @@ function Dashboard({ rawData, loading }) {
         </div>
       </div>
 
-      {/* KPI strip */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
         {[
           { label: "Total MTD Sales",    value: fmt(totalCurrMTD), sub: `vs ${fmt(totalPrevMTD)} (${PREV_MONTH} MTD)`, chip: <DeltaChip value={overallDelta} /> },
@@ -509,7 +457,6 @@ function Dashboard({ rawData, loading }) {
         ))}
       </div>
 
-      {/* Total chart */}
       <SectionTitle sub={`${MONTH_NAME} vs ${PREV_MONTH} · Day ${DAY} of ${DAYS_MONTH}`}>
         {chartMode === "daily" ? "Daily Sales — Total Business" : "Cumulative Sales — Total Business"}
       </SectionTitle>
@@ -540,8 +487,7 @@ function Dashboard({ rawData, loading }) {
         </ResponsiveContainer>
       </Card>
 
-      {/* Segment summary */}
-      <SectionTitle sub="MTD achievement vs pro-rata target · click segment for detail">Segment Breakdown</SectionTitle>
+      <SectionTitle sub="MTD achievement vs pro-rata target">Segment Breakdown</SectionTitle>
       <Card style={{ marginBottom: 28 }}>
         {SEGMENTS.map((seg, i) => {
           const sd = segmentData[seg.id];
@@ -566,7 +512,6 @@ function Dashboard({ rawData, loading }) {
         })}
       </Card>
 
-      {/* Leaderboard */}
       <SectionTitle sub={`${MONTH_NAME} · ranked by MTD actual`}>Sales Team Leaderboard</SectionTitle>
       <Card style={{ marginBottom: 28 }}>
         <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 100px 100px 70px 1fr", gap: 12, padding: "12px 20px", borderBottom: "1px solid #F0F4F8", fontSize: 10, fontWeight: 700, color: "#8A97A8", textTransform: "uppercase", letterSpacing: 0.5 }}>
@@ -591,9 +536,6 @@ function Dashboard({ rawData, loading }) {
   );
 }
 
-// ═════════════════════════════════════════════════════════════
-// ROOT APP
-// ═════════════════════════════════════════════════════════════
 export default function App() {
   const [role, setRole]       = useState(VIEW_PASSWORD ? null : "viewer");
   const [activeTab, setTab]   = useState("dashboard");
@@ -626,18 +568,15 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#F4F7FA", minHeight: "100vh" }}>
-      {/* Header */}
       <div style={{ background: "#fff", borderBottom: "1px solid #E5E9EF", padding: "0 32px", position: "sticky", top: 0, zIndex: 99 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, maxWidth: 1400, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#1A2332", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "#fff", fontWeight: 900, fontSize: 13 }}>UC</span>
-            </div>
+            <img src={LOGO_URL} alt="UCMPL Logo" style={{ height: 42, width: 42, objectFit: "contain", borderRadius: 8 }} />
             <div>
               <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: -0.3 }}>UCMPL Sales Dashboard</div>
               <div style={{ fontSize: 11, color: "#8A97A8" }}>
-                Day {DAY} · {MONTH_NAME} {today.getFullYear()} ·
-                <Badge style={{ marginLeft: 6 }} color={role === "admin" ? "#2E7D52" : "#2E86AB"} bg={role === "admin" ? "#EAF7EF" : "#EAF4F9"}>
+                Day {DAY} · {MONTH_NAME} {today.getFullYear()} ·&nbsp;
+                <Badge color={role === "admin" ? "#2E7D52" : "#2E86AB"} bg={role === "admin" ? "#EAF7EF" : "#EAF4F9"}>
                   {role === "admin" ? "Admin" : "Viewer"}
                 </Badge>
               </div>
@@ -659,7 +598,6 @@ export default function App() {
           </div>
         </div>
       </div>
-
       <div style={{ padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {activeTab === "dashboard" && <Dashboard rawData={rawData} loading={loading} />}
         {activeTab === "entry"     && role === "admin" && <DataEntryPanel onSaved={fetchData} />}
@@ -667,3 +605,4 @@ export default function App() {
     </div>
   );
 }
+ENDOFFILE
