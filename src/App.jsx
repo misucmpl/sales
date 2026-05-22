@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, ReferenceLine
 } from "recharts";
 
-const APPS_SCRIPT_URL = "https://script.google.com/a/macros/ucmpl.com/s/AKfycbwFlDjuIrUUFDs_cx57CNtHYrPED5mQ9WJ5NtzLxPt4_vE7Eb6Roqp7J0jOQrom6mv8/exec";
+const APPS_SCRIPT_URL = "/api/proxy";
 const ADMIN_PASSWORD  = "ucm@admin";
 const VIEW_PASSWORD   = "ucm@view";
 const LOGO_URL        = "https://raw.githubusercontent.com/misucmpl/sales/main/new logo.jpeg";
