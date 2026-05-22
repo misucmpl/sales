@@ -34,12 +34,13 @@ const SEGMENTS = [
   { id: "road",      name: "Road Safety",       color: "#546E7A", light: "#EDF2F4" },
 ];
 
-const SALESPEOPLE = [
-  { id: "rk", name: "Rajesh Kumar",  initials: "RK" },
-  { id: "pm", name: "Priya Mehra",   initials: "PM" },
-  { id: "as", name: "Amit Sharma",   initials: "AS" },
-  { id: "nd", name: "Neha Dubey",    initials: "ND" },
-  { id: "vt", name: "Vikram Tiwari", initials: "VT" },
+const SALESPEOPLE = [  
+  { id: "aj", name: "Ashuttosh Jain",  initials: "AJ" },
+  { id: "ar", name: "Amit Rai",  initials: "AR" },
+  { id: "rk", name: "Paras Agarwal",  initials: "PA" },
+  { id: "pm", name: "Ishita Sharma",   initials: "IS" },
+  { id: "as", name: "Ritika Upreti",   initials: "RU" },
+  { id: "nd", name: "Shivam Sukla",    initials: "SS" },
 ];
 
 const today      = new Date();
